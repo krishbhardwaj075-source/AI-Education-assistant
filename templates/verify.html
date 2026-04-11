@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-bg">
+    <div class="auth-card">
+    <h2 class="mb-3">OTP Verification</h2>
+    <p>Enter the OTP sent to your e-mail</p>
+<form method="POST">
+<input type="text" name="otp" class="form-control mb-3"placeholder="Enter OTP" required>
+<button class="btn btn-primary">Verify</button>
+</form>
+<p id="timer">Resend OTP in 90s</p>
+<a href="/resend-otp" class="btn btn-warning" style="display:none;">
+Resend OTP
+</a>
+</div>
+<script>
+let time = 90;
+let timer = document.getElementById("timer");
+let minutes=Math.floor(time/60);
+let seconds=time%60;
+seconds=seconds<10?"0"+seconds:seconds;
+let resendBtn = document.getElementById("resendBtn");
+let countdown = setInterval(() => {
+time--;
+timer.innerText = "Resend OTP in " + time + "s";
+if(time <= 0){
+clearInterval(countdown);
+timer.style.display="none";
+resendBtn.style.display="block";
+}
+},1000);
+</script>
+</body>
+</html>

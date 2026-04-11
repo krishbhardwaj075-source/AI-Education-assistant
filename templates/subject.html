@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjects</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Your Subjects</h2>
+    <a href="/dashboard" class="btn btn-light mb-3">⬅ Back to Dashboard</a>
+    <a href="/add-subject" class="btn btn-primary mb-3">Add Subjects</a>
+    <div class="card p-3">
+    <table class="table table-bordered table-hover">
+        <tr>
+            <th>Subjects</th>
+            <th>Difficulty</th>
+            <th>Topics</th>
+            <th>Exam Date</th>
+            <th>Action</th>
+        </tr>
+        {% for s in subjects %}
+        <tr>
+            <td>{{ s[1] }}</td>
+            <td>{{ s[2] }}</td>
+            <td>{{ s[3] }}</td>
+            <td>{{ s[4] }}</td>
+            <td>
+                <a href="/complete/{{s[0]}}" class="btn btn-success btn-sm">✔ Done</a>
+                <a href="/delete-subject/{{ s[0] }}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>  
+</div>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between">
+        <h2>Welcome {{ name }}</h2>
+
+        <div>
+            <a href="/study_planner" class="btn btn-warning me-2">AI Planner</a>
+            <a href="/analytics" class="btn btn-primary">📊 Analytics</a>
+            <a href="/revision" class="btn btn-secondary me-2">🔁 Revision Plan</a>
+            <a href="/subjects" class="btn btn-info">View Subjects</a>
+            <a href="/add-subject" class="btn btn-success me-2">+ Add Subject</a>
+            <a href="/chatbot" class="btn btn-primary me-2">AI Chat</a>
+            <a href="/logout" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card p-4 shadow">
+                <h5>Total Subjects</h5>
+                <h2>{{ subjects }}</h2>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+    <div class="card p-3 shadow">
+        <h5>🔔 Reminders</h5>
+        {% if reminders %}
+            <ul>
+                {% for r in reminders %}
+                    <li>{{ r }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-success">All good 🎉</p>
+        {% endif %}
+    </div>
+</div>
+        
+            
+        <div class="col-md-3">
+            <div class="card p-3 shadow">
+                <h5>Study Hours</h5>
+                <p>{{ study_hours }} hr/day</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-4 shadow">
+                <h5>Weak Subject</h5>
+                <h2>{{ weak_sub }}</h2>
+            </div>
+        </div>
+          <div class="col-md-3">
+    <div class="card p-3 shadow">
+        <h5>🔥 Study Streak</h5>
+        <h2>{{ streak }} Days</h2>
+        {% if streak >= 5 %}
+            <p class="text-success">🔥 Amazing!</p>
+        {% elif streak >= 3 %}
+            <p class="text-warning">👍 Keep going!</p>
+        {% else %}
+            <p class="text-danger">⚠️ Start consistency!</p>
+        {% endif %}
+    </div>
+    </div>
+    
+ 
+</div>
+    {% if recommendation %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card p-4 shadow border-warning">
+                <h5>Priority Recommendation</h5>
+                <h4>{{ recommendation.subject_name }}</h4>
+                <p>{{ recommendation.message }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-warning text-dark">{{ recommendation.topic_count }} topics</span>
+                    <span class="badge bg-danger">{{ recommendation.days_left }} days left</span>
+                    <span class="badge bg-info text-dark">{{ recommendation.difficulty }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card p-4 shadow">
+                <h5>Subjects Difficulty</h5>
+                <canvas id="difficultyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="card p-4 shadow">
+                        <h5>Completed</h5>
+                        <h2>{{ completed }}</h2>
+                        <hr>
+                        {% if completed_subjects %}
+                            <h6>Completed Subjects:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for sub in completed_subjects %}
+                                    <span class="badge bg-success">{{ sub }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No completed subjects yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card p-4 shadow">
+                        <h5>Partial</h5>
+                        <h2>{{ partial_count }}</h2>
+                        <hr>
+                        {% if partial_subjects %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for sub in partial_subjects %}
+                                    <span class="badge bg-warning text-dark">{{ sub }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No partial subjects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card p-4 shadow">
+                        <h5>Not Done</h5>
+                        <h2>{{ not_done_count }}</h2>
+                        <hr>
+                        {% if not_done_subjects %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for sub in not_done_subjects %}
+                                    <span class="badge bg-danger">{{ sub }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No pending subjects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 mb-2">
+        <h4>Progress Tracker</h4>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4 shadow">
+            <h5>Track Today's Progress</h5>
+
+            <form method="POST" action="/track">
+                <input type="hidden" name="day" value="{{ day }}">
+
+                <div class="mb-2">
+                    <label>Subject:</label>
+                    <select name="subject" class="form-control">
+                        {% for sub in subject_list %}
+                            <option value="{{ sub }}">{{ sub }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label>Status:</label>
+                    <select name="status" class="form-control">
+                        <option value="100">Completed</option>
+                        <option value="50">Partial</option>
+                        <option value="0">Not Done</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary mt-2">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card p-4 shadow">
+            <h5>Your Progress</h5>
+
+            {% for row in data %}
+                <p>
+                    Day {{ row[2] }} -> {{ row[0] }} ->
+
+                    {% if row[3] == 100 %}
+                        <span class="text-success">Completed</span>
+                    {% elif row[3] == 50 %}
+                        <span class="text-warning">Partial</span>
+                    {% else %}
+                        <span class="text-danger">Not Done</span>
+                    {% endif %}
+                </p>
+            {% endfor %}
+
+            <hr>
+
+            <h6>Overall Progress: {{ avg }}%</h6>
+            <p>AI Insight: {{ insight }}</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const ctx = document.getElementById('difficultyChart');
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ labels|default([])|tojson }},
+        datasets: [{
+            data: {{ values|default([])|tojson }},
+            backgroundColor: [
+                "#1f6feb",
+                "#14b8a6",
+                "#f59e0b"
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        plugins: {
+            legend: {
+                labels: {
+                    color: "#17324d",
+                    font: { weight: "600" }
+                }
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
