@@ -2,6 +2,7 @@ import sqlite3
 from flask import  Flask,render_template,request,redirect,session,flash
 import random
 import time
+import os
 from datetime import datetime
 from utils.analytics import get_performance_data
 from sklearn.preprocessing import PolynomialFeatures
@@ -14,7 +15,7 @@ from utils.recommendation import build_priority_recommendation
 from Database.database import cursor,conn
 poly=PolynomialFeatures(degree=2, include_bias=False)
 app=Flask(__name__)
-app.secret_key="secret123"
+app.secret_key=os.getenv("SECRET_KEY")
 rf_model=pickle.load(open("Model/study_rf_model.pkl","rb"))
 scaler=pickle.load(open("Model/scaler.pkl","rb"))
 @app.route("/")
