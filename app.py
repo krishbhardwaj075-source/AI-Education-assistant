@@ -103,7 +103,34 @@ def login():
             return redirect("/dashboard")
         return "Invalid Email or Password!"
     return render_template("login.html")
-        
+@app.route("/forgot-password", methods=["GET","POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form["email"].strip().lower()
+        cursor.execute("SELECT * FROM users WHERE email=?", (email,))
+        user = cursor.fetchone()
+        if user:
+            otp = random.randint(100000, 999999)
+            session["reset_otp"] = otp
+            session["reset_otp_time"] = time.time()
+            session["reset_email"] = email
+            send_otp(email, otp)
+            return redirect("/reset-verify")
+        else:
+            flash("Email not found!")
+    return render_template("forgot-password.html")   
+@app.route("/reset-verify", methods=["GET","POST"])
+def reset_verify():
+    if request.method == "POST":
+        user_otp = request.form["otp"]
+        if time.time() - session["reset_otp_time"] > 90:
+            flash("OTP Expired!", "danger")
+            return redirect("/forgot-password")
+        if int(user_otp) == session["reset_otp"]:
+            return redirect("/reset-password")
+        else:
+            flash("Invalid OTP", "danger")
+    return render_template("reset-verify.html")  
 @app.route("/dashboard")
 def dashboard():
     if "user_id" in session:
