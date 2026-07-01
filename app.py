@@ -16,7 +16,7 @@ from Database.database import cursor,conn
 from dotenv import load_dotenv
 load_dotenv()
 app=Flask(__name__)
-app.config['SESSION_COOKIE_HTTPONLY'] = True #WHEN TO DEPLOY AND ADD ONE LINE ALSO 
+app.config['SESSION_COOKIE_HTTPONLY'] = True #WHEN TO DEPLOY AND ADD ONE LINE ALSO
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.secret_key=os.getenv("SECRET_KEY")
 rf_model=pickle.load(open("Model/study_rf_model.pkl","rb"))
