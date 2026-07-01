@@ -5,19 +5,23 @@ import time
 import os
 from datetime import datetime
 from utils.analytics import get_performance_data
-from sklearn.preprocessing import PolynomialFeatures
 import pickle
+from utils.security import hash_password, verify_password   
 from utils.e_mail import send_otp
 from utils.streak import update_streak
 from utils.plan import generate_plan
 from utils.chatbot import get_ai_response
 from utils.recommendation import build_priority_recommendation
 from Database.database import cursor,conn
-poly=PolynomialFeatures(degree=2, include_bias=False)
+from dotenv import load_dotenv
+load_dotenv()
 app=Flask(__name__)
+app.config['SESSION_COOKIE_HTTPONLY'] = True #WHEN TO DEPLOY AND ADD ONE LINE ALSO 
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.secret_key=os.getenv("SECRET_KEY")
 rf_model=pickle.load(open("Model/study_rf_model.pkl","rb"))
 scaler=pickle.load(open("Model/scaler.pkl","rb"))
+poly=pickle.load(open("Model/poly.pkl","rb"))
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -28,6 +32,7 @@ def signup():
         name=request.form["name"]
         email=request.form["email"]
         password=request.form["password"]
+        password=hash_password(password)
         username=request.form["username"]
         cursor.execute("SELECT * FROM users WHERE username=?", (username,))
         user_exist=cursor.fetchone()
@@ -88,11 +93,11 @@ def login():
         identity=request.form["identity"]#E-mail
         password=request.form["password"]
         cursor.execute(
-            "SELECT * FROM users WHERE (username=? OR email=?) AND password=?",
-            (identity,identity,password)
+            "SELECT * FROM users WHERE (username=? OR email=?) ",
+            (identity,identity)
         )
         user=cursor.fetchone()
-        if user:
+        if user and verify_password(password, user[4]):
             session["user_id"]=user[0]
             session["user"]=user[1]
             return redirect("/dashboard")
@@ -134,7 +139,7 @@ def dashboard():
         """, (user_id,))
         subject_details = cursor.fetchall()
         
-        cursor.execute("SELECT subject_name FROM subjects WHERE user_id=? AND status!='completed' ORDER BY subject_name ASC", (user_id,))
+        cursor.execute("SELECT subject_name FROM subjects WHERE user_id=? ORDER BY subject_name ASC", (user_id,))
         subject_list = [row[0] for row in cursor.fetchall()]
 
         
@@ -319,14 +324,11 @@ WHERE user_id=? AND status=100 ORDER BY date DESC""", (user_id,))
         max_subjects_per_day=int(request.form.get("max_subjects_per_day", 4))
 
         study_eff=study*participation
-        attendance_ratio=attendance/100
-
-        from sklearn.preprocessing import PolynomialFeatures
         features=[[study,attendance,participation,study_eff]]
-        poly=PolynomialFeatures(degree=2, include_bias=False)
-        features_poly=poly.fit_transform(features)
+        features_poly=poly.transform(features)
         features_scaled=scaler.transform(features_poly)
         result=rf_model.predict(features_scaled)
+
         days_left=int(request.form.get("days_left", 30))
         
         prediction=round(result[0],2)
